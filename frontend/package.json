@@ -28,7 +28,6 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "scripts": {
-    "debug": "DEBUG=vite:* vite",
     "start": "vite",
     "build": "vite build",
     "serve": "vite preview"
