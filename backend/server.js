@@ -1,10 +1,16 @@
 require('dotenv').config();
+const config = require('./config/config');
 const socketIo = require('socket.io');
-const { app, server } = require('./app');
+const app = require('./app');
+const http = require('http');
+const server = http.createServer(app);
+
+console.log('config', config);
+
 
 const io = socketIo(server, {
   cors: {
-    origin: config.frontendUrl,
+    origin: config.clientUrl,
     methods: ["GET", "POST"]
   }
 });

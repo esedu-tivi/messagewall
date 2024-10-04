@@ -21,8 +21,8 @@
     "socket.io": "^4.7.5"
   },
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "NODE_ENV=production node server.js",
+    "dev": "NODE_ENV=developmetn nodemon server.js"
   },
   "eslintConfig": {
     "extends": [

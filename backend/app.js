@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const http = require('http');
 
 const connectDB = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
@@ -9,10 +8,8 @@ const messageRoutes = require('./routes/messageRoutes');
 const path = require('path');
 const userRoutes = require('./routes/userRoutes');
 const pollRoutes = require('./routes/pollRoutes');
-const config = require('./config/config');
 
 const app = express();
-const server = http.createServer(app);
 
 
 // Connect to MongoDB
@@ -37,7 +34,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-module.exports = {
-  app,
-  server,
-};
+module.exports = app;

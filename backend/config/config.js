@@ -1,15 +1,14 @@
+require('dotenv').config();
+
 const config = {
-    development: {
-      frontendUrl: 'http://localhost:3000', // http://localhost:3000
+  development: {
+    clientUrl: process.env.DEVELOPMENT_CLIENT_URL,
+  },
+  production: {
+    clientUrl: process.env.PRODUCTION_CLIENT_URL,
+  }
+};
 
+const env = process.env.NODE_ENV || 'development';
 
-    },
-    production: {
-      frontendUrl: 'https://your-production-frontend-url.com',
-
-    }
-  };
-  
-  const env = 'development'; // 'development' or 'production'
-  
-  module.exports = config[env];
+module.exports = config[env];
