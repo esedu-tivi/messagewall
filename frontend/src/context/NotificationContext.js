@@ -58,11 +58,8 @@ export const NotificationProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (!isMounted.current) {
-      isMounted.current = true;
-      fetchNotifications();
-      fetchMutePreference();
-    }
+    fetchNotifications();
+    fetchMutePreference();
 
     if (user) {
       socket.on('new notification', (newNotification) => {

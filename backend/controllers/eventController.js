@@ -165,11 +165,24 @@ exports.getPastEvents = async (req, res) => {
 
 exports.addPollPreset = async (req, res) => {
   try {
-    const { question, options, duration } = req.body;
+    const { question, options, duration, deletionTimer } = req.body;
     const event = await Event.findById(req.params.id);
 
     if (!event) {
       return res.status(404).json({ error: 'Event not found' });
+    }
+
+    // Validate inputs
+    if (!question || !options || options.length < 2) {
+      return res.status(400).json({ error: 'Question and at least two options are required' });
+    }
+
+    if (duration < 10 || duration > 300) {
+      return res.status(400).json({ error: 'Duration must be between 10 and 300 seconds' });
+    }
+
+    if (deletionTimer < 5 || deletionTimer > 300) {
+      return res.status(400).json({ error: 'Result display duration must be between 5 and 300 seconds' });
     }
 
     // Ensure options is an array of objects with text and votes properties
@@ -178,7 +191,13 @@ exports.addPollPreset = async (req, res) => {
       votes: 0
     }));
 
-    event.pollPresets.push({ question, options: formattedOptions, duration });
+    event.pollPresets.push({ 
+      question, 
+      options: formattedOptions, 
+      duration,
+      deletionTimer
+    });
+    
     await event.save();
 
     res.status(201).json(event.pollPresets[event.pollPresets.length - 1]);
@@ -205,7 +224,7 @@ exports.getPollPresets = async (req, res) => {
 
 exports.updatePollPreset = async (req, res) => {
   try {
-    const { question, options, duration } = req.body;
+    const { question, options, duration, deletionTimer } = req.body;
     const event = await Event.findById(req.params.id);
 
     if (!event) {
@@ -218,16 +237,32 @@ exports.updatePollPreset = async (req, res) => {
       return res.status(404).json({ error: 'Poll preset not found' });
     }
 
+    // Validate inputs
+    if (!question || !options || options.length < 2) {
+      return res.status(400).json({ error: 'Question and at least two options are required' });
+    }
+
+    if (duration < 10 || duration > 300) {
+      return res.status(400).json({ error: 'Duration must be between 10 and 300 seconds' });
+    }
+
+    if (deletionTimer < 5 || deletionTimer > 300) {
+      return res.status(400).json({ error: 'Result display duration must be between 5 and 300 seconds' });
+    }
+
     // Ensure options is an array of objects with text and votes properties
     const formattedOptions = options.map(option => ({
       text: option,
       votes: 0
     }));
 
+    // Update the preset with all fields including deletionTimer
     event.pollPresets[presetIndex] = { 
+      ...event.pollPresets[presetIndex],
       question, 
       options: formattedOptions, 
-      duration 
+      duration,
+      deletionTimer
     };
 
     await event.save();
@@ -259,8 +294,11 @@ exports.deletePollPreset = async (req, res) => {
 
 exports.deployPoll = async (req, res) => {
   try {
-    const { question, options, duration } = req.body;
+    const { question, options, duration, deletionTimer } = req.body;
     const eventId = req.params.id;
+
+    // Log the received data
+    console.log('Deploying poll with data:', { question, options, duration, deletionTimer });
 
     const event = await Event.findById(eventId);
     if (!event) {
@@ -280,6 +318,7 @@ exports.deployPoll = async (req, res) => {
       options: options.map(option => ({ text: option, votes: 0 })),
       createdBy: req.user.id,
       duration,
+      deletionTimer: deletionTimer || 20,
       endTime
     });
 
@@ -309,8 +348,8 @@ const endPoll = async (pollId, io) => {
     // Emit socket event to notify clients that the poll has ended
     io.to(poll.event.toString()).emit('poll ended', poll);
 
-    // Schedule poll deletion after 20 seconds
-    setTimeout(() => deletePoll(pollId, io), 20000);
+    // Use the custom deletionTimer from the poll
+    setTimeout(() => deletePoll(pollId, io), poll.deletionTimer * 1000);
   } catch (error) {
     console.error('Error ending poll:', error);
   }

@@ -15,6 +15,10 @@ const PollPresetSchema = new mongoose.Schema({
   duration: {
     type: Number,
     default: 60 // Duration in seconds
+  },
+  deletionTimer: {
+    type: Number,
+    default: 20
   }
 });
 

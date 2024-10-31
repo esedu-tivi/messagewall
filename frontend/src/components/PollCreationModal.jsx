@@ -16,6 +16,7 @@ export function PollCreationModal({ isOpen, onClose, eventId, isOrganizer }) {
   const [presets, setPresets] = useState([]);
   const [selectedPresetId, setSelectedPresetId] = useState('');
   const [isActivePoll, setIsActivePoll] = useState(false);
+  const [deletionTimer, setDeletionTimer] = useState(20);
 
   useEffect(() => {
     if (isOpen && isOrganizer) {
@@ -49,10 +50,12 @@ export function PollCreationModal({ isOpen, onClose, eventId, isOrganizer }) {
       setQuestion(selectedPreset.question);
       setOptions(selectedPreset.options.map(option => option.text));
       setDuration(selectedPreset.duration);
+      setDeletionTimer(selectedPreset.deletionTimer);
     } else {
       setQuestion('');
       setOptions(['', '']);
       setDuration(60);
+      setDeletionTimer(20);
     }
   };
 
@@ -86,7 +89,7 @@ export function PollCreationModal({ isOpen, onClose, eventId, isOrganizer }) {
       return;
     }
     try {
-      await api.post(`/polls/${eventId}`, { question, options, duration });
+      await api.post(`/polls/${eventId}`, { question, options, duration, deletionTimer });
       showSuccessToast(t('pollCreation.successCreating'));
       onClose();
     } catch (error) {
@@ -158,6 +161,18 @@ export function PollCreationModal({ isOpen, onClose, eventId, isOrganizer }) {
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
               min="10"
+              max="300"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="deletionTimer">{t('pollCreation.deletionTimer')}</Label>
+            <Input
+              id="deletionTimer"
+              type="number"
+              value={deletionTimer}
+              onChange={(e) => setDeletionTimer(Number(e.target.value))}
+              min="5"
               max="300"
               required
             />

@@ -5,10 +5,12 @@ import { Label } from "./ui/label";
 import { Plus, Minus, Edit, Trash2, Play } from 'lucide-react';
 import api from '../services/api';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { useTranslation } from 'react-i18next';
 
 export function PollPresetManager({ eventId, onClose }) {
+  const { t } = useTranslation();
   const [presets, setPresets] = useState([]);
-  const [newPreset, setNewPreset] = useState({ question: '', options: ['', ''], duration: 60 });
+  const [newPreset, setNewPreset] = useState({ question: '', options: ['', ''], duration: 60, deletionTimer: 20 });
   const [editingPresetId, setEditingPresetId] = useState(null);
   const [isActivePoll, setIsActivePoll] = useState(false);
 
@@ -22,7 +24,7 @@ export function PollPresetManager({ eventId, onClose }) {
       const response = await api.get(`/events/${eventId}/poll-presets`);
       setPresets(response.data);
     } catch (error) {
-      showErrorToast('Failed to fetch poll presets');
+      showErrorToast(t('pollPresets.errorFetching'));
     }
   };
 
@@ -36,34 +38,89 @@ export function PollPresetManager({ eventId, onClose }) {
   };
 
   const handleAddPreset = async () => {
+    // Validate question
+    if (!newPreset.question.trim()) {
+      showErrorToast(t('pollPresets.validationErrors.questionRequired'));
+      return;
+    }
+
+    // Validate options (at least 2 non-empty options)
+    const validOptions = newPreset.options.filter(option => option.trim() !== '');
+    if (validOptions.length < 2) {
+      showErrorToast(t('pollPresets.validationErrors.twoOptionsRequired'));
+      return;
+    }
+
+    // Validate duration
+    if (newPreset.duration < 10 || newPreset.duration > 300) {
+      showErrorToast(t('pollPresets.validationErrors.durationRange'));
+      return;
+    }
+
+    // Validate deletion timer
+    if (newPreset.deletionTimer < 5 || newPreset.deletionTimer > 300) {
+      showErrorToast(t('pollPresets.validationErrors.resultDurationRange'));
+      return;
+    }
+
     try {
       const response = await api.post(`/events/${eventId}/poll-presets`, {
         question: newPreset.question,
         options: newPreset.options.filter(option => option.trim() !== ''),
-        duration: newPreset.duration
+        duration: newPreset.duration,
+        deletionTimer: newPreset.deletionTimer
       });
       setPresets([...presets, response.data]);
-      setNewPreset({ question: '', options: ['', ''], duration: 60 });
-      showSuccessToast('Poll preset added successfully');
+      setNewPreset({ question: '', options: ['', ''], duration: 60, deletionTimer: 20 });
+      showSuccessToast(t('pollPresets.successAdd'));
     } catch (error) {
-      showErrorToast('Failed to add poll preset: ' + (error.response?.data?.details || error.message));
+      showErrorToast(t('pollPresets.errorAdd') + ': ' + (error.response?.data?.details || error.message));
     }
   };
 
   const handleUpdatePreset = async (presetId) => {
+    const presetToUpdate = presets.find(preset => preset._id === presetId);
+
+    // Validate question
+    if (!presetToUpdate.question.trim()) {
+      showErrorToast(t('pollPresets.validationErrors.questionRequired'));
+      return;
+    }
+
+    // Validate options (at least 2 non-empty options)
+    const validOptions = presetToUpdate.options
+      .map(option => option.text)
+      .filter(option => option.trim() !== '');
+    if (validOptions.length < 2) {
+      showErrorToast(t('pollPresets.validationErrors.twoOptionsRequired'));
+      return;
+    }
+
+    // Validate duration
+    if (presetToUpdate.duration < 10 || presetToUpdate.duration > 300) {
+      showErrorToast(t('pollPresets.validationErrors.durationRange'));
+      return;
+    }
+
+    // Validate deletion timer
+    if (presetToUpdate.deletionTimer < 5 || presetToUpdate.deletionTimer > 300) {
+      showErrorToast(t('pollPresets.validationErrors.resultDurationRange'));
+      return;
+    }
+
     try {
       const presetToUpdate = presets.find(preset => preset._id === presetId);
       const response = await api.put(`/events/${eventId}/poll-presets/${presetId}`, {
         question: presetToUpdate.question,
         options: presetToUpdate.options.map(option => option.text).filter(option => option.trim() !== ''),
-        duration: presetToUpdate.duration
+        duration: presetToUpdate.duration,
+        deletionTimer: presetToUpdate.deletionTimer
       });
       setPresets(presets.map(preset => preset._id === presetId ? response.data : preset));
       setEditingPresetId(null);
-      showSuccessToast('Poll preset updated successfully');
+      showSuccessToast(t('pollPresets.successUpdate'));
     } catch (error) {
-      console.error('Error updating poll preset:', error);
-      showErrorToast('Failed to update poll preset: ' + (error.response?.data?.details || error.message));
+      showErrorToast(t('pollPresets.errorUpdate') + ': ' + (error.response?.data?.details || error.message));
     }
   };
 
@@ -71,9 +128,9 @@ export function PollPresetManager({ eventId, onClose }) {
     try {
       await api.delete(`/events/${eventId}/poll-presets/${presetId}`);
       setPresets(presets.filter(preset => preset._id !== presetId));
-      showSuccessToast('Poll preset deleted successfully');
+      showSuccessToast(t('pollPresets.successDelete'));
     } catch (error) {
-      showErrorToast('Failed to delete poll preset');
+      showErrorToast(t('pollPresets.errorDelete'));
     }
   };
 
@@ -94,27 +151,35 @@ export function PollPresetManager({ eventId, onClose }) {
 
   const handleDeployPreset = async (preset) => {
     if (isActivePoll) {
-      showErrorToast('There is already an active poll. Please wait for it to end before deploying a new one.');
+      showErrorToast(t('pollPresets.activePollError'));
       return;
     }
 
     try {
+      console.log('Deploying preset with data:', {
+        question: preset.question,
+        options: preset.options.map(option => option.text),
+        duration: preset.duration,
+        deletionTimer: preset.deletionTimer
+      });
+
       const response = await api.post(`/events/${eventId}/deploy-poll`, {
         question: preset.question,
         options: preset.options.map(option => option.text),
-        duration: preset.duration
+        duration: preset.duration,
+        deletionTimer: preset.deletionTimer
       });
-      showSuccessToast('Poll deployed successfully');
+      showSuccessToast(t('pollPresets.successDeploy'));
       setIsActivePoll(true);
-      onClose(); // Close the event settings window
+      onClose();
     } catch (error) {
-      showErrorToast('Failed to deploy poll: ' + (error.response?.data?.details || error.message));
+      showErrorToast(t('pollPresets.errorDeploy') + ': ' + (error.response?.data?.details || error.message));
     }
   };
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Poll Presets</h2>
+      <h2 className="text-xl font-bold">{t('pollPresets.title')}</h2>
       {presets.map(preset => (
         <div key={preset._id} className="border p-4 rounded-md">
           {editingPresetId === preset._id ? (
@@ -141,10 +206,10 @@ export function PollPresetManager({ eventId, onClose }) {
               ))}
               <Button type="button" variant="outline" onClick={() => handleAddOption(preset)} className="mb-2">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Option
+                {t('pollPresets.addOption')}
               </Button>
               <div className="flex items-center space-x-2">
-                <Label htmlFor={`duration-${preset._id}`}>Duration (seconds)</Label>
+                <Label htmlFor={`duration-${preset._id}`}>{t('pollPresets.duration')}</Label>
                 <Input
                   id={`duration-${preset._id}`}
                   type="number"
@@ -152,9 +217,24 @@ export function PollPresetManager({ eventId, onClose }) {
                   onChange={(e) => setPresets(presets.map(p => p._id === preset._id ? { ...p, duration: Number(e.target.value) } : p))}
                   min="10"
                   max="300"
+                  required
                 />
               </div>
-              <Button onClick={() => handleUpdatePreset(preset._id)} className="mt-2">Save</Button>
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="deletionTimer">{t('pollPresets.resultDuration')}</Label>
+                <Input
+                  id="deletionTimer"
+                  type="number"
+                  value={preset.deletionTimer}
+                  onChange={(e) => setPresets(presets.map(p => 
+                    p._id === preset._id ? { ...p, deletionTimer: Number(e.target.value) } : p
+                  ))}
+                  min="5"
+                  max="300"
+                  required
+                />
+              </div>
+              <Button onClick={() => handleUpdatePreset(preset._id)} className="mt-2">{t('pollPresets.save')}</Button>
             </>
           ) : (
             <>
@@ -164,15 +244,16 @@ export function PollPresetManager({ eventId, onClose }) {
                   <li key={index}>{option.text}</li>
                 ))}
               </ul>
-              <p>Duration: {preset.duration} seconds</p>
+              <p>{t('pollPresets.durationSeconds')}: {preset.duration} </p>
+              <p>{t('pollPresets.resultDurationSeconds')}: {preset.deletionTimer} </p>
               <div className="flex space-x-2 mt-2">
                 <Button onClick={() => setEditingPresetId(preset._id)}>
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit
+                  {t('pollPresets.edit')}
                 </Button>
                 <Button variant="destructive" onClick={() => handleDeletePreset(preset._id)}>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  {t('pollPresets.delete')}
                 </Button>
                 <Button 
                   variant="secondary" 
@@ -180,7 +261,7 @@ export function PollPresetManager({ eventId, onClose }) {
                   disabled={isActivePoll}
                 >
                   <Play className="h-4 w-4 mr-2" />
-                  Deploy
+                  {t('pollPresets.deploy')}
                 </Button>
               </div>
             </>
@@ -188,11 +269,11 @@ export function PollPresetManager({ eventId, onClose }) {
         </div>
       ))}
       <div className="border p-4 rounded-md">
-        <h3 className="font-semibold mb-2">Add New Preset</h3>
+        <h3 className="font-semibold mb-2">{t('pollPresets.addNewPreset')}</h3>
         <Input
           value={newPreset.question}
           onChange={(e) => setNewPreset({ ...newPreset, question: e.target.value })}
-          placeholder="Question"
+          placeholder={t('pollPresets.questionPlaceholder')}
           className="mb-2"
         />
         {newPreset.options.map((option, index) => (
@@ -204,7 +285,7 @@ export function PollPresetManager({ eventId, onClose }) {
                 updatedOptions[index] = e.target.value;
                 setNewPreset({ ...newPreset, options: updatedOptions });
               }}
-              placeholder={`Option ${index + 1}`}
+              placeholder={t('pollPresets.optionPlaceholder', { number: index + 1 })}
             />
             {index > 1 && (
               <Button type="button" variant="ghost" size="icon" onClick={() => setNewPreset({ ...newPreset, options: newPreset.options.filter((_, i) => i !== index) })}>
@@ -216,11 +297,11 @@ export function PollPresetManager({ eventId, onClose }) {
         {newPreset.options.length < 5 && (
           <Button type="button" variant="outline" onClick={() => setNewPreset({ ...newPreset, options: [...newPreset.options, ''] })} className="mb-2">
             <Plus className="h-4 w-4 mr-2" />
-            Add Option
+            {t('pollPresets.addOption')}
           </Button>
         )}
         <div className="flex items-center space-x-2 mb-2">
-          <Label htmlFor="new-preset-duration">Duration (seconds)</Label>
+          <Label htmlFor="new-preset-duration">{t('pollPresets.durationSeconds')}</Label>
           <Input
             id="new-preset-duration"
             type="number"
@@ -228,9 +309,22 @@ export function PollPresetManager({ eventId, onClose }) {
             onChange={(e) => setNewPreset({ ...newPreset, duration: Number(e.target.value) })}
             min="10"
             max="300"
+            required
           />
         </div>
-        <Button onClick={handleAddPreset}>Add Preset</Button>
+        <div className="flex items-center space-x-2 mb-2">
+          <Label htmlFor="new-preset-deletion-timer">{t('pollPresets.resultDurationSeconds')}</Label>
+          <Input
+            id="new-preset-deletion-timer"
+            type="number"
+            value={newPreset.deletionTimer}
+            onChange={(e) => setNewPreset({ ...newPreset, deletionTimer: Number(e.target.value) })}
+            min="5"
+            max="300"
+            required
+          />
+        </div>
+        <Button onClick={handleAddPreset}>{t('pollPresets.addPreset')}</Button>
       </div>
     </div>
   );

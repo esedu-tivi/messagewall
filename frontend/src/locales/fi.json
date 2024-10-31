@@ -154,7 +154,9 @@
       "usePreset": "Käytä valmista pohjaa",
       "selectPreset": "Valitse pohja",
       "none": "Ei mitään",
-      "option": "Vaihtoehto"
+      "option": "Vaihtoehto",
+      "deletionTimer": "Tulosten näyttöaika (sekuntia)",
+      "deletionTimerHelp": "Kuinka kauan tuloksia näytetään äänestyksen päättymisen jälkeen"
     },
     "pollDisplay": {
       "currentPoll": "Nykyinen Äänestys",
@@ -229,5 +231,54 @@
       "newMessageModeration": "Uusi viesti vaatii moderointia tapahtumassa: ",
       "mute": "Mykistä ilmoitukset",
       "unmute": "Poista mykistys"
+    },
+    "pollPresets": {
+      "title": "Kyselypohjat",
+      "addNewPreset": "Lisää uusi pohja",
+      "edit": "Muokkaa",
+      "delete": "Poista",
+      "deploy": "Käytä",
+      "save": "Tallenna",
+      "duration": "Kesto",
+      "durationSeconds": "Kesto (sekunteina)",
+      "resultDuration": "Tulosten näyttöaika",
+      "resultDurationSeconds": "Tulosten näyttöaika (sekunteina)",
+      "question": "Kysymys",
+      "questionPlaceholder": "Kirjoita kysymys",
+      "option": "Vaihtoehto",
+      "optionPlaceholder": "Vaihtoehto {{number}}",
+      "addOption": "Lisää vaihtoehto",
+      "removeOption": "Poista vaihtoehto",
+      "addPreset": "Lisää pohja",
+      "errorFetching": "Virhe kyselypohjien hakemisessa",
+      "successAdd": "Kyselyn pohja lisätty onnistuneesti",
+      "errorAdd": "Virhe pohjan lisäämisessä",
+      "successUpdate": "Kyselyn pohja päivitetty onnistuneesti",
+      "errorUpdate": "Virhe pohjan päivittämisessä",
+      "successDelete": "Kyselyn pohja poistettu onnistuneesti",
+      "errorDelete": "Virhe pohjan poistamisessa",
+      "successDeploy": "Kysely käynnistetty onnistuneesti",
+      "errorDeploy": "Virhe kyselyn käynnistämisessä",
+      "activePollError": "Kysely on jo käynnissä",
+      "validationErrors": {
+        "questionRequired": "Kysymys on pakollinen",
+        "twoOptionsRequired": "Vähintään 2 vaihtoehtoa vaaditaan",
+        "durationRange": "Keston tulee olla 10-300 sekuntia",
+        "resultDurationRange": "Tulosten näyttöajan tulee olla 5-300 sekuntia"
+      }
+    },
+    "pollHistory": {
+      "title": "Kyselyhistoria",
+      "loading": "Ladataan kyselyhistoriaa...",
+      "noPollsInHistory": "Ei kyselyitä historiassa.",
+      "clearHistory": "Tyhjennä historia",
+      "confirmClear": "Haluatko varmasti tyhjentää kyselyhistorian? Tätä toimintoa ei voi kumota.",
+      "clearSuccess": "Kyselyhistoria tyhjennetty onnistuneesti",
+      "clearError": "Kyselyhistorian tyhjentäminen epäonnistui",
+      "createdBy": "Luonut",
+      "status": "Tila",
+      "active": "Aktiivinen",
+      "ended": "Päättynyt",
+      "votes": "ääntä"
     }
   }

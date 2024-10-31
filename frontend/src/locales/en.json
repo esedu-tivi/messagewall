@@ -154,7 +154,9 @@
       "usePreset": "Use Preset",
       "selectPreset": "Select Preset",
       "none": "None",
-      "option": "Option"
+      "option": "Option",
+      "deletionTimer": "Result Display Duration (seconds)",
+      "deletionTimerHelp": "How long to show results after poll ends"
     },
     "pollDisplay": {
       "currentPoll": "Current Poll",
@@ -228,5 +230,54 @@
       "newMessageModeration": "New message requires moderation in event: ",
       "mute": "Mute notifications",
       "unmute": "Unmute notifications"
+    },
+    "pollPresets": {
+      "title": "Poll Presets",
+      "addNewPreset": "Add New Preset",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deploy": "Deploy",
+      "save": "Save",
+      "duration": "Duration",
+      "durationSeconds": "Duration (seconds)",
+      "resultDuration": "Result Display Duration",
+      "resultDurationSeconds": "Result Display Duration (seconds)",
+      "question": "Question",
+      "questionPlaceholder": "Enter your question",
+      "option": "Option",
+      "optionPlaceholder": "Option {{number}}",
+      "addOption": "Add Option",
+      "addPreset": "Add Preset",
+      "removeOption": "Remove Option",
+      "errorFetching": "Failed to fetch poll presets",
+      "successAdd": "Poll preset added successfully",
+      "errorAdd": "Failed to add poll preset",
+      "successUpdate": "Poll preset updated successfully",
+      "errorUpdate": "Failed to update poll preset",
+      "successDelete": "Poll preset deleted successfully",
+      "errorDelete": "Failed to delete poll preset",
+      "successDeploy": "Poll deployed successfully",
+      "errorDeploy": "Failed to deploy poll",
+      "activePollError": "There is already an active poll",
+      "validationErrors": {
+        "questionRequired": "Question is required",
+        "twoOptionsRequired": "At least 2 options are required",
+        "durationRange": "Duration must be between 10 and 300 seconds",
+        "resultDurationRange": "Result display duration must be between 5 and 300 seconds"
+      }
+    },
+    "pollHistory": {
+      "title": "Poll History",
+      "loading": "Loading poll history...",
+      "noPollsInHistory": "No polls in history.",
+      "clearHistory": "Clear History",
+      "confirmClear": "Are you sure you want to clear the poll history? This action cannot be undone.",
+      "clearSuccess": "Poll history cleared successfully",
+      "clearError": "Failed to clear poll history",
+      "createdBy": "Created by",
+      "status": "Status",
+      "active": "Active",
+      "ended": "Ended",
+      "votes": "votes"
     }
   }

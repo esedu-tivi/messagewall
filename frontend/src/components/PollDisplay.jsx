@@ -63,6 +63,12 @@ export function PollDisplay({ poll, onVote, isOrganizer }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (poll.isActive === false) {
+      setIsExpanded(true); // Force expand when poll ends
+    }
+  }, [poll.isActive]);
+
   const handleVote = async () => {
     if (hasVoted || selectedOption === null) return;
     try {
@@ -115,7 +121,7 @@ export function PollDisplay({ poll, onVote, isOrganizer }) {
       className="bg-card text-card-foreground w-full overflow-hidden relative mb-4 rounded-lg shadow-lg"
     >
       <div 
-        className={`px-4 py-2 cursor-pointer transition-colors duration-200`}
+         className={`px-4 py-2 cursor-pointer transition-colors duration-200`}
         onClick={toggleExpand}
       >
         <div className="flex justify-between items-center mb-1">

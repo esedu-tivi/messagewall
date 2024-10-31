@@ -3,7 +3,7 @@ const Event = require('../models/Event');
 
 exports.createPoll = async (req, res) => {
   try {
-    const { question, options, duration, type } = req.body;
+    const { question, options, duration, deletionTimer, type } = req.body;
     const eventId = req.params.eventId;
 
     const event = await Event.findById(eventId);
@@ -42,6 +42,7 @@ exports.createPoll = async (req, res) => {
       options: pollOptions,
       createdBy: req.user.id,
       duration,
+      deletionTimer: deletionTimer || 20,
       endTime
     });
 
@@ -71,10 +72,10 @@ const endPoll = async (pollId, io) => {
     // Emit socket event to notify clients that the poll has ended
     io.to(poll.event.toString()).emit('poll ended', poll);
 
-    // Schedule poll removal from client after 10 seconds
+    // Use the custom deletionTimer from the poll
     setTimeout(() => {
       io.to(poll.event.toString()).emit('poll removed', pollId);
-    }, 10000);
+    }, poll.deletionTimer * 1000);
   } catch (error) {
     console.error('Error ending poll:', error);
   }
@@ -85,11 +86,28 @@ const endPoll = async (pollId, io) => {
 exports.getActivePoll = async (req, res) => {
   try {
     const eventId = req.params.eventId;
-    const activePoll = await Poll.findOne({ event: eventId, isActive: true });
-    if (!activePoll) {
-      return res.status(200).json({ activePoll: null });
+    
+    // First check for active polls
+    let poll = await Poll.findOne({ event: eventId, isActive: true });
+    
+    // If no active poll, check for recently ended polls
+    if (!poll) {
+      const recentlyEndedPoll = await Poll.findOne({
+        event: eventId,
+        isActive: false,
+        endTime: { $gt: new Date(Date.now() - 300000) } // Look for polls ended in last 5 minutes
+      }).sort({ endTime: -1 });
+
+      // Only return the ended poll if it's still within its deletion timer window
+      if (recentlyEndedPoll) {
+        const timeSinceEnd = Date.now() - new Date(recentlyEndedPoll.endTime).getTime();
+        if (timeSinceEnd < recentlyEndedPoll.deletionTimer * 1000) {
+          poll = recentlyEndedPoll;
+        }
+      }
     }
-    res.json({ activePoll });
+
+    res.json({ activePoll: poll });
   } catch (error) {
     console.error('Error fetching active poll:', error);
     res.status(500).json({ error: 'Server error' });
@@ -155,10 +173,10 @@ exports.endPoll = async (req, res) => {
     // Emit socket event to notify clients that the poll has ended
     req.app.locals.io.to(poll.event.toString()).emit('poll ended', poll);
 
-    // Schedule poll removal from client after 10 seconds
+    // Use the custom deletionTimer from the poll
     setTimeout(() => {
       req.app.locals.io.to(poll.event.toString()).emit('poll removed', poll._id);
-    }, 10000);
+    }, poll.deletionTimer * 1000);
 
     res.json(poll);
   } catch (error) {

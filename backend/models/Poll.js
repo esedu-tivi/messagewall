@@ -41,7 +41,13 @@ const PollSchema = new mongoose.Schema({
   voters: [{
     userId: String,
     optionIndex: Number
-  }]
+  }],
+  deletionTimer: {
+    type: Number,
+    default: 20, // Default 20 seconds
+    min: 5,      // Minimum 5 seconds
+    max: 300     // Maximum 5 minutes
+  }
 });
 
 module.exports = mongoose.model('Poll', PollSchema);
