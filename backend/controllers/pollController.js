@@ -97,27 +97,14 @@ exports.getActivePoll = async (req, res) => {
       const recentlyEndedPoll = await Poll.findOne({
         event: eventId,
         isActive: false,
-        endedAt: { $ne: null }
-      }).sort({ endedAt: -1 });
+        endTime: { $gt: new Date(Date.now() - 10000) } // Look for polls ended in last 5 minutes
+      }).sort({ endTime: -1 });
 
+      // Only return the ended poll if it's still within its deletion timer window
       if (recentlyEndedPoll) {
-        const timeSinceEnd = Date.now() - new Date(recentlyEndedPoll.endedAt).getTime();
-        
-        // If the poll has exceeded its deletion timer, delete it
-        if (timeSinceEnd >= recentlyEndedPoll.deletionTimer * 1000) {
-          await Poll.findByIdAndDelete(recentlyEndedPoll._id);
-          req.app.locals.io.to(eventId).emit('poll removed', recentlyEndedPoll._id);
-          poll = null;
-        } else {
-          // Only return the poll if it's still within its deletion timer window
+        const timeSinceEnd = Date.now() - new Date(recentlyEndedPoll.endTime).getTime();
+        if (timeSinceEnd < recentlyEndedPoll.deletionTimer * 1000) {
           poll = recentlyEndedPoll;
-          
-          // Set up deletion timer for the remaining time
-          const remainingTime = (recentlyEndedPoll.deletionTimer * 1000) - timeSinceEnd;
-          setTimeout(async () => {
-            await Poll.findByIdAndDelete(recentlyEndedPoll._id);
-            req.app.locals.io.to(eventId).emit('poll removed', recentlyEndedPoll._id);
-          }, remainingTime);
         }
       }
     }
