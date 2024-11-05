@@ -67,21 +67,23 @@ const endPoll = async (pollId, io) => {
     if (!poll || !poll.isActive) return;
 
     poll.isActive = false;
+    poll.endedAt = new Date();
     await poll.save();
 
     // Emit socket event to notify clients that the poll has ended
     io.to(poll.event.toString()).emit('poll ended', poll);
 
     // Use the custom deletionTimer from the poll
-    setTimeout(() => {
+    setTimeout(async () => {
+      // Delete the poll from database
+      await Poll.findByIdAndDelete(pollId);
+      // Notify clients to remove the poll
       io.to(poll.event.toString()).emit('poll removed', pollId);
     }, poll.deletionTimer * 1000);
   } catch (error) {
     console.error('Error ending poll:', error);
   }
 };
-
-// Remove the deletePoll function
 
 exports.getActivePoll = async (req, res) => {
   try {
@@ -95,14 +97,27 @@ exports.getActivePoll = async (req, res) => {
       const recentlyEndedPoll = await Poll.findOne({
         event: eventId,
         isActive: false,
-        endTime: { $gt: new Date(Date.now() - 300000) } // Look for polls ended in last 5 minutes
-      }).sort({ endTime: -1 });
+        endedAt: { $ne: null }
+      }).sort({ endedAt: -1 });
 
-      // Only return the ended poll if it's still within its deletion timer window
       if (recentlyEndedPoll) {
-        const timeSinceEnd = Date.now() - new Date(recentlyEndedPoll.endTime).getTime();
-        if (timeSinceEnd < recentlyEndedPoll.deletionTimer * 1000) {
+        const timeSinceEnd = Date.now() - new Date(recentlyEndedPoll.endedAt).getTime();
+        
+        // If the poll has exceeded its deletion timer, delete it
+        if (timeSinceEnd >= recentlyEndedPoll.deletionTimer * 1000) {
+          await Poll.findByIdAndDelete(recentlyEndedPoll._id);
+          req.app.locals.io.to(eventId).emit('poll removed', recentlyEndedPoll._id);
+          poll = null;
+        } else {
+          // Only return the poll if it's still within its deletion timer window
           poll = recentlyEndedPoll;
+          
+          // Set up deletion timer for the remaining time
+          const remainingTime = (recentlyEndedPoll.deletionTimer * 1000) - timeSinceEnd;
+          setTimeout(async () => {
+            await Poll.findByIdAndDelete(recentlyEndedPoll._id);
+            req.app.locals.io.to(eventId).emit('poll removed', recentlyEndedPoll._id);
+          }, remainingTime);
         }
       }
     }

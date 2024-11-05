@@ -47,6 +47,10 @@ const PollSchema = new mongoose.Schema({
     default: 20, // Default 20 seconds
     min: 5,      // Minimum 5 seconds
     max: 300     // Maximum 5 minutes
+  },
+  endedAt: {
+    type: Date,
+    default: null
   }
 });
 
