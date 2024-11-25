@@ -31,12 +31,7 @@ MessageWall is a real-time event messaging platform that allows event organizers
 - 📊 Poll history, presets and management
 - 🌐 Localization with English and Finnish languages
 - 👑 Custom role management for organizers
-
-## 🚀 Coming Soon
 - 🔔 Push notification system
-- 🔍 Search functionality for events
-- 🛡️ Advanced chat moderation (ban, timeout)
-& more
 
 ## 🛠️ Tech Stack
 
