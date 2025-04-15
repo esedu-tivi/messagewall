@@ -160,7 +160,7 @@ export default function Layout({ children }) {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <p className="font-semibold mb-1">VAKS-Viestiseinä</p>
+                  <p className="font-semibold mb-1">Esedu-Viestiseinä</p>
                   <p className="opacity-75">Created by</p>
                   <p>Tobias Lång & Ossi Hänninen</p>
                   <div className="mt-2 flex items-center space-x-2">

@@ -1,6 +1,6 @@
 // frontend/src/components/Admin/CustomRoleManagement.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -20,16 +20,16 @@ export function CustomRoleManagement() {
 
   useEffect(() => {
     fetchOrganizers();
-  }, []);
+  }, [fetchOrganizers]);
 
-  const fetchOrganizers = async () => {
+  const fetchOrganizers = useCallback(async () => {
     try {
       const response = await api.get('/roles/organizers');
       setOrganizers(response.data);
     } catch (error) {
       showErrorToast(t('customRole.errorFetchingOrganizers'));
     }
-  };
+  }, [t]);
 
   const handleAssignRole = async () => {
     if (!selectedUser || !roleName) {
