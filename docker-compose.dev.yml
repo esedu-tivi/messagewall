@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  frontend:
+    container_name: messagewall-frontend-dev
+    image: messagewall-frontend-dev
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000" # Frontend dev port
+    environment:
+      REACT_APP_BACKEND_URL: http://localhost:5000/api
+      REACT_APP_SOCKET_URL: http://localhost:5000
+      REACT_APP_SOCKET_PATH: /socket.io
+      PUBLIC_URL: http://localhost:3000
+      
+    volumes:
+      - ./frontend:/usr/src/app # Hot-reload for frontend code
+      - /usr/src/app/node_modules # Don't overwrite node_modules in container
+
+  backend:
+    container_name: messagewall-backend-dev
+    image: messagewall-backend-dev
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev # Use Dockerfile.dev for development
+    ports:
+      - "5000:5000"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/messagewall
+      JWT_SECRET: your_dev_jwt_secret
+      PORT: 5000
+      FRONTEND_URL: http://localhost:3000
+      SOCKET_IO_PATH: /socket.io
+      BASE_URL: /api
+      NODE_ENV: development # Development environment
+
+      ADMIN_USERNAME: admin
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: TurvallisempiSalasana123
+      ADMIN_COLOR: "#FF0000"
+
+    volumes:
+      - ./backend:/usr/src/app # Hot-reload for backend code
+      - /usr/src/app/node_modules # Don't overwrite node_modules in container
+
+    depends_on:
+      - mongo
+
+    command: >
+      sh -c "node scripts/create-admin.js && npm run dev"
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongodb-dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data-dev:/data/db
+
+volumes:
+  mongo-data-dev:

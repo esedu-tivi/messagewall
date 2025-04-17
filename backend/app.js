@@ -19,7 +19,13 @@ app.set('trust proxy', 1);
 // Connect to MongoDB
 connectDB();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL 
+    : ['http://localhost:3000','http://localhost:80'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json());
 
 const BASE_URL = process.env.BASE_URL;

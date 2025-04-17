@@ -6,8 +6,11 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || '*',
-    methods: ["GET", "POST"]
+      origin: process.env.NODE_ENV === 'production' 
+        ? process.env.FRONTEND_URL 
+        : ['http://localhost:3000','http://localhost:80'],
+      methods: ["GET", "POST"],
+      credentials: true    
   },
   path: process.env.SOCKET_IO_PATH || '/socket.io'
 });

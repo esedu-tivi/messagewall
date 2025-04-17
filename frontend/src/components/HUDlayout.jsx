@@ -88,14 +88,11 @@ export default function Layout({ children }) {
     setIsSidebarExpanded(!isSidebarExpanded);
   };
 
-  let basename = process.env.REACT_APP_BASENAME || '';
-  if (basename === '/') basename = '';
-
   return (
     <div className="flex h-screen w-full flex-col bg-background text-foreground">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-muted px-4 md:px-6">
         <Link to="/" className="flex items-center gap-2 text-lg font-semibold">
-          <img src={`${basename}/vakslogo_kuvake.png`} alt="VAKS Logo" className="h-6 w-6" />
+          <img src={`${process.env.PUBLIC_URL}/vakslogo_kuvake.png`} alt="VAKS Logo" className="h-6 w-6" />
           <span className="hidden sm:inline">VAKS-Viestiseinä</span>
         </Link>
 

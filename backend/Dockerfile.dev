@@ -1,0 +1,14 @@
+FROM node:18
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm install
+
+# Älä kopioi lähdekoodeja tässä, ne mountataan volumena
+# Tämä mahdollistaa hot-reloadin
+
+EXPOSE 5000
+
+# Käynnistä kehityspalvelin, esim. nodemon
+CMD ["npm", "run", "dev"]
